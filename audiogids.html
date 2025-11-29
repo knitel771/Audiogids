@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <title>Interactieve Audiogids - Grote Markt Antwerpen</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: Arial, sans-serif; background: #f3f4f6; padding: 20px; }
+    .card { background: white; padding: 20px; border-radius: 16px; max-width: 500px; margin: auto; box-shadow: 0 10px 25px rgba(0,0,0,.1); }
+    h1, h2 { text-align: center; }
+    input { width: 100%; padding: 10px; margin: 6px 0; border-radius: 8px; border: 1px solid #ccc; }
+    button { width: 100%; padding: 12px; margin-top: 12px; border-radius: 10px; border: none; background: black; color: white; font-size: 16px; }
+    .audio { background: #f9fafb; padding: 14px; border-radius: 10px; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <div class="card" id="app">
+    <h1>Interactieve Audiogids</h1>
+    <p>Vul de namen in van de 8 deelnemers:</p>
+    <div id="inputs"></div>
+    <button onclick="startTour()">Start tour</button>
+  </div>
+
+  <script>
+    const names = new Array(8).fill("");
+    const inputDiv = document.getElementById("inputs");
+
+    names.forEach((_, i) => {
+      const input = document.createElement("input");
+      input.placeholder = `Naam ${i + 1}`;
+      input.oninput = e => names[i] = e.target.value;
+      inputDiv.appendChild(input);
+    });
+
+    function speak(text) {
+      const msg = new SpeechSynthesisUtterance(text);
+      msg.lang = "nl-NL";
+      speechSynthesis.speak(msg);
+    }
+
+    function startTour() {
+      const app = document.getElementById("app");
+      const intro = `Welkom op de Grote Markt van Antwerpen. Fijn dat jullie er zijn. ${names[0] ? names[0] + ", extra leuk dat jij erbij bent!" : ""}`;
+      app.innerHTML = `
+        <h2>Audiogids</h2>
+        <div class="audio">${intro}</div>
+        <button onclick="next()">Volgende fragment</button>
+      `;
+      speak(intro);
+    }
+
+    function next() {
+      const text = `${names[1] ? names[1] + ", " : ""}kijk eens naar het stadhuis. Zie je het gouden beeld bovenop?`;
+      document.querySelector(".audio").innerText = text;
+      speak(text);
+    }
+  </script>
+</body>
+</html>
