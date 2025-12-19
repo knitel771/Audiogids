@@ -1,59 +1,152 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8" />
-  <title>Interactieve Audiogids - Grote Markt Antwerpen</title>
+  <meta charset="utf-8">
+  <title>Audiogids – Grote Markt Antwerpen</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { font-family: Arial, sans-serif; background: #f3f4f6; padding: 20px; }
-    .card { background: white; padding: 20px; border-radius: 16px; max-width: 500px; margin: auto; box-shadow: 0 10px 25px rgba(0,0,0,.1); }
-    h1, h2 { text-align: center; }
-    input { width: 100%; padding: 10px; margin: 6px 0; border-radius: 8px; border: 1px solid #ccc; }
-    button { width: 100%; padding: 12px; margin-top: 12px; border-radius: 10px; border: none; background: black; color: white; font-size: 16px; }
-    .audio { background: #f9fafb; padding: 14px; border-radius: 10px; margin-top: 10px; }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #f3f4f6;
+      padding: 20px;
+    }
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 16px;
+      max-width: 520px;
+      margin: auto;
+      box-shadow: 0 10px 25px rgba(0,0,0,.1);
+    }
+    h1, h2 {
+      text-align: center;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 6px 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    button {
+      width: 100%;
+      padding: 14px;
+      margin-top: 14px;
+      border-radius: 12px;
+      border: none;
+      background: black;
+      color: white;
+      font-size: 16px;
+    }
+    .audio {
+      background: #f9fafb;
+      padding: 16px;
+      border-radius: 12px;
+      margin-top: 14px;
+      font-size: 17px;
+      line-height: 1.4;
+    }
   </style>
 </head>
 <body>
-  <div class="card" id="app">
-    <h1>Interactieve Audiogids</h1>
-    <p>Vul de namen in van de 8 deelnemers:</p>
-    <div id="inputs"></div>
-    <button onclick="startTour()">Start tour</button>
-  </div>
 
-  <script>
-    const names = new Array(8).fill("");
-    const inputDiv = document.getElementById("inputs");
+<div class="card" id="app">
+  <h1>Interactieve Audiogids</h1>
+  <p>Vul de namen in van de deelnemers:</p>
+  <div id="inputs"></div>
+  <button onclick="startTour()">Start audiotour</button>
+</div>
 
-    names.forEach((_, i) => {
-      const input = document.createElement("input");
-      input.placeholder = `Naam ${i + 1}`;
-      input.oninput = e => names[i] = e.target.value;
-      inputDiv.appendChild(input);
-    });
+<script>
+  const names = new Array(8).fill("");
+  const inputDiv = document.getElementById("inputs");
+  const app = document.getElementById("app");
 
-    function speak(text) {
-      const msg = new SpeechSynthesisUtterance(text);
-      msg.lang = "nl-NL";
-      speechSynthesis.speak(msg);
-    }
+  names.forEach((_, i) => {
+    const input = document.createElement("input");
+    input.placeholder = `Naam ${i + 1}`;
+    input.oninput = e => names[i] = e.target.value;
+    inputDiv.appendChild(input);
+  });
 
-    function startTour() {
-      const app = document.getElementById("app");
-      const intro = `Welkom op de Grote Markt van Antwerpen. Fijn dat jullie er zijn. ${names[0] ? names[0] + ", extra leuk dat jij erbij bent!" : ""}`;
+  const fragments = [
+    () => `Welkom op de Grote Markt van Antwerpen.
+    Neem even een moment en kijk om je heen.
+    Dit plein is al meer dan achthonderd jaar het hart van de stad.`,
+
+    () => `Jullie staan hier niet zomaar op een plein.
+    Dit is een plek van handel, macht, ruzie, rijkdom en verhalen.
+    ${names[0] ? names[0] + ", jij staat hier vandaag ook middenin dat verhaal." : ""}`,
+
+    () => `Kijk nu naar het stadhuis.
+    Gebouwd in de zestiende eeuw, toen Antwerpen één van de rijkste steden ter wereld was.`,
+
+    () => `${names[1] ? names[1] + ", stel je eens voor" : "Stel je eens voor"}
+    dat je hier in vijftienhonderdvijfenzestig staat.
+    Wat zou je denken als je dit gebouw ziet?`,
+
+    () => `Draai nu langzaam mee langs de gildehuizen.
+    Elk huis hoorde bij een beroepsgroep.
+    Hoe hoger en rijker het huis, hoe succesvoller de gilde.`,
+
+    () => `Kies samen één gevel die jullie het mooist vinden
+    en wijs hem aan.`,
+
+    () => `En dan midden op het plein: Silvius Brabo.
+    Volgens de legende doodde hij de reus Antigoon
+    en gooide diens hand in de Schelde.`,
+
+    () => `Of het waar is of niet:
+    dit verhaal gaf Antwerpen zijn naam.
+    Hand werpen.
+    Zelfs in de middeleeuwen wist men:
+    een goed verhaal verkoopt.`,
+
+    () => `Wat jullie hier zien is geen decor.
+    Het is een toneel dat al eeuwen in gebruik is.
+    Loop straks nog even rond.
+    En kijk vooral omhoog.`
+  ];
+
+  let step = 0;
+
+  function speak(text) {
+    speechSynthesis.cancel();
+    const msg = new SpeechSynthesisUtterance(text);
+    msg.lang = "nl-NL";
+    speechSynthesis.speak(msg);
+  }
+
+  function startTour() {
+    step = 0;
+    showFragment();
+  }
+
+  function showFragment() {
+    const text = fragments[step]();
+    app.innerHTML = `
+      <h2>Audiogids</h2>
+      <div class="audio">${text}</div>
+      <button onclick="nextFragment()">Volgende</button>
+    `;
+    speak(text);
+  }
+
+  function nextFragment() {
+    step++;
+    if (step < fragments.length) {
+      showFragment();
+    } else {
       app.innerHTML = `
-        <h2>Audiogids</h2>
-        <div class="audio">${intro}</div>
-        <button onclick="next()">Volgende fragment</button>
+        <h2>Einde – eerste deel</h2>
+        <div class="audio">
+          Dit was het eerste deel van de audiogids.
+          Neem gerust even de tijd om rond te kijken.
+        </div>
       `;
-      speak(intro);
     }
+  }
+</script>
 
-    function next() {
-      const text = `${names[1] ? names[1] + ", " : ""}kijk eens naar het stadhuis. Zie je het gouden beeld bovenop?`;
-      document.querySelector(".audio").innerText = text;
-      speak(text);
-    }
-  </script>
 </body>
 </html>
