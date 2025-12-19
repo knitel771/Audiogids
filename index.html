@@ -71,41 +71,149 @@
 
   const fragments = [
     () => `Welkom op de Grote Markt van Antwerpen.
-    Neem even een moment en kijk om je heen.
-    Dit plein is al meer dan achthonderd jaar het hart van de stad.`,
+  Neem even een moment en kijk om je heen.
+  Dit plein is al meer dan achthonderd jaar het hart van de stad.`,
 
-    () => `Jullie staan hier niet zomaar op een plein.
-    Dit is een plek van handel, macht, ruzie, rijkdom en verhalen.
-    ${names[0] ? names[0] + ", jij staat hier vandaag ook middenin dat verhaal." : ""}`,
+  () => `Jullie staan hier niet zomaar op een plein.
+  Dit is een plek van handel, macht, ruzie, rijkdom en verhalen.
+  ${names[0] ? names[0] + ", jij staat hier vandaag ook middenin dat verhaal." : ""}`,
 
-    () => `Kijk nu naar het stadhuis.
-    Gebouwd in de zestiende eeuw, toen Antwerpen één van de rijkste steden ter wereld was.`,
+  () => `Kijk nu naar het stadhuis.
+  Gebouwd in de zestiende eeuw,
+  toen Antwerpen één van de rijkste steden ter wereld was.`,
 
-    () => `${names[1] ? names[1] + ", stel je eens voor" : "Stel je eens voor"}
-    dat je hier in vijftienhonderdvijfenzestig staat.
-    Wat zou je denken als je dit gebouw ziet?`,
+  () => `${names[1] ? names[1] + ", stel je eens voor" : "Stel je eens voor"}
+  dat je hier in vijftienhonderdvijfenzestig staat.
+  Wat zou je denken als je dit gebouw ziet?`,
 
-    () => `Draai nu langzaam mee langs de gildehuizen.
-    Elk huis hoorde bij een beroepsgroep.
-    Hoe hoger en rijker het huis, hoe succesvoller de gilde.`,
+  () => `Draai nu langzaam mee langs de gildehuizen.
+  Elk huis hoorde bij een beroepsgroep.
+  Hoe hoger en rijker het huis,
+  hoe succesvoller de gilde.`,
 
-    () => `Kies samen één gevel die jullie het mooist vinden
-    en wijs hem aan.`,
+  () => `Kies samen één gevel die jullie het mooist vinden
+  en wijs hem aan.`,
 
-    () => `En dan midden op het plein: Silvius Brabo.
-    Volgens de legende doodde hij de reus Antigoon
-    en gooide diens hand in de Schelde.`,
+  () => `En dan midden op het plein: Silvius Brabo.
+  Volgens de legende doodde hij de reus Antigoon
+  en gooide diens hand in de Schelde.`,
 
-    () => `Of het waar is of niet:
-    dit verhaal gaf Antwerpen zijn naam.
-    Hand werpen.
-    Zelfs in de middeleeuwen wist men:
-    een goed verhaal verkoopt.`,
+  () => `Of het waar is of niet:
+  dit verhaal gaf Antwerpen zijn naam.
+  Hand werpen.
+  Zelfs in de middeleeuwen wist men:
+  een goed verhaal verkoopt.`,
 
-    () => `Wat jullie hier zien is geen decor.
-    Het is een toneel dat al eeuwen in gebruik is.
-    Loop straks nog even rond.
-    En kijk vooral omhoog.`
+  () => `Wat jullie hier zien is geen decor.
+  Het is een toneel dat al eeuwen in gebruik is.
+  Neem even een moment om rond te kijken.`,
+
+  /* ========== OVERGANG NAAR DEEL B ========== */
+
+  () => `We gaan nu een laag dieper.
+  Om deze plek echt te begrijpen,
+  moeten we het hebben over macht,
+  geloof, kapitaal en informatie.`,
+
+  /* ========== DEEL B ========== */
+
+  () => `Antwerpen in de zestiende eeuw was niet alleen rijk.
+  Het was een experiment.
+  Voor het eerst kwamen hier kapitaal,
+  internationale netwerken,
+  religieuze verschillen
+  en informatie samen.`,
+
+  () => `Handel betekende hier meer dan goederen verplaatsen.
+  Het ging om risico’s,
+  vertrouwen
+  en sneller weten dan anderen.`,
+
+  () => `${names[2] ? names[2] + ", stel je voor" : "Stel je voor"}
+  dat jij hier koopman was in vijftienhonderdvijftig.
+  Waar zou jij op inzetten:
+  snelheid, relaties of durf?`,
+
+  () => `Niet toevallig was Antwerpen ook het centrum
+  van de Europese drukkunst.
+  Drukkers als Christoffel Plantijn
+  maakten informatie massaal reproduceerbaar.`,
+
+  () => `Wie informatie controleerde,
+  kon markten beïnvloeden
+  en geloofsvragen aanwakkeren.
+  Informatie werd macht.`,
+
+  () => `Religie was hier geen privézaak.
+  Het ging om loyaliteit,
+  identiteit
+  en politieke controle.`,
+
+  () => `De stad probeerde tolerant te zijn
+  zolang dat economisch werkte.
+  Maar zodra geloof een wapen werd,
+  kantelde het evenwicht.`,
+
+  () => `De breuk van vijftienhonderdvijfentachtig
+  kwam niet uit het niets.
+  Antwerpen zat klem
+  tussen haar eigen realiteit
+  en de ambities van een wereldrijk.`,
+
+  () => `De tegenpartij was koning Filips de Tweede van Spanje.
+  Voor hem was Antwerpen geen stad,
+  maar een sleutel tot macht.`,
+
+  () => `Aan de andere kant stond een stadsbestuur
+  dat steeds calvinistischer werd
+  en zich verbond met de Opstand tegen Spanje.`,
+
+  () => `In vijftienhonderdvierenachtig
+  verscheen Alexander Farnese
+  voor de poorten van de stad.`,
+
+  () => `Hij koos niet voor een aanval,
+  maar voor uithongering.
+  Door de Schelde af te sluiten
+  verloor Antwerpen voedsel,
+  handel
+  en informatie.`,
+
+  () => `${names[3] ? names[3] + ", stel je eens voor" : "Stel je eens voor"}
+  dat jij hier toen woonde.
+  Zou je blijven,
+  of zou je vertrekken,
+  wetend wat er zou volgen?`,
+
+  () => `Na maanden van honger
+  gaf Antwerpen zich in vijftienhonderdvijfentachtig over.`,
+
+  () => `De afspraken leken mild,
+  maar de gevolgen waren enorm.
+  Kooplieden,
+  drukkers,
+  financiers
+  en kunstenaars vertrokken.`,
+
+  () => `Wat hier verdween,
+  verplaatste zich.
+  Zonder de val van Antwerpen
+  geen Amsterdamse Gouden Eeuw.`,
+
+  () => `De stad verloor geen muren.
+  Ze verloor haar mensen.`,
+
+  () => `De Grote Markt bleef bestaan.
+  Niet als motor van de wereld,
+  maar als geheugen.`,
+
+  () => `Wat jullie hier zien
+  is geen succesverhaal
+  en geen tragedie.
+  Het is een casus.
+  En precies daarom
+  is deze plek zo interessant.`
+
   ];
 
   let step = 0;
