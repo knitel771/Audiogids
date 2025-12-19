@@ -61,19 +61,38 @@
 }
 
   function speak(text) {
-    try {
-      speechSynthesis.cancel();
-      const msg = new SpeechSynthesisUtterance(text);
-      msg.lang = "nl-NL";
-      msg.rate = 1;
-      msg.pitch = 1;
-      msg.onend = () => {};
-      msg.onerror = () => {};
-      speechSynthesis.speak(msg);
-    } catch (e) {
-      // Stil falen: UI blijft werken
+  try {
+    speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+
+    const voices = speechSynthesis.getVoices();
+
+    // Zoek expliciet een Vlaamse vrouwelijke stem
+    const preferredVoice =
+      voices.find(v =>
+        v.lang === "nl-BE" &&
+        /female|vrouw|ellen|lotte|zoe|laura/i.test(v.name)
+      ) ||
+      voices.find(v => v.lang === "nl-BE") ||
+      voices.find(v => v.lang.startsWith("nl")) ||
+      voices[0];
+
+    if (preferredVoice) {
+      utterance.voice = preferredVoice;
     }
+
+    // Zwoelere parameters (binnen nette grenzen)
+    utterance.lang = "nl-BE";
+    utterance.rate = 0.9;   // rustiger
+    utterance.pitch = 0.9;  // iets lager
+    utterance.volume = 1;
+
+    speechSynthesis.speak(utterance);
+  } catch (e) {
+    console.warn("Speech synthesis failed", e);
   }
+}
+
 
   // Steps: tekst + quiz door elkaar
   const steps = [
