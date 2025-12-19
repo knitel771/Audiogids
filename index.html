@@ -53,6 +53,13 @@
   }
 
   // Spraak
+  function playAudio(src) {
+  try {
+    const audio = new Audio(src);
+    audio.play();
+  } catch (e) {}
+}
+
   function speak(text) {
     try {
       speechSynthesis.cancel();
@@ -70,6 +77,18 @@
 
   // Steps: tekst + quiz door elkaar
   const steps = [
+
+    {
+  type: "customAudio",
+  audio: "intro_mathijs.m4a",
+  text: "Welkom op de Grote Markt van Antwerpen. Fijn dat jullie er zijn. Beste AI-gids, neem jij het vanaf hier over?"
+},
+{
+  type: "text",
+  get: () => `Ja, dankjewel Mathijs.
+Ik neem het vanaf hier over.
+Ook namens mij: welkom Ghoe Gaer-leden.`
+},
 
     /* ========= DEEL A ========= */
     { type: "text", get: () => `Welkom op de Grote Markt van Antwerpen.
@@ -250,6 +269,19 @@ En precies daarom is deze plek zo interessant.` },
     const s = steps[step];
 
     if (!s) return;
+
+    if (s.type === "customAudio") {
+  app.innerHTML = `
+    <h2>Welkom</h2>
+    <div class="audio">
+      <div class="meta">Stap ${step + 1} / ${steps.length}</div>
+      ${s.text}
+    </div>
+    <button onclick="nextStep()">Volgende</button>
+  `;
+  playAudio(s.audio);
+  return;
+}
 
     if (s.type === "text") {
       const text = s.get();
