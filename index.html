@@ -5,56 +5,31 @@
   <title>Audiogids – Grote Markt Antwerpen</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-      background: #f3f4f6;
-      padding: 20px;
-    }
-    .card {
-      background: white;
-      padding: 20px;
-      border-radius: 16px;
-      max-width: 520px;
-      margin: auto;
-      box-shadow: 0 10px 25px rgba(0,0,0,.1);
-    }
-    h1, h2 {
-      text-align: center;
-    }
-    input {
-      width: 100%;
-      padding: 10px;
-      margin: 6px 0;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-    }
-    button {
-      width: 100%;
-      padding: 14px;
-      margin-top: 14px;
-      border-radius: 12px;
-      border: none;
-      background: black;
-      color: white;
-      font-size: 16px;
-    }
-    .audio {
-      background: #f9fafb;
-      padding: 16px;
-      border-radius: 12px;
-      margin-top: 14px;
-      font-size: 17px;
-      line-height: 1.4;
-    }
+    body { font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif; background:#f3f4f6; padding:20px; }
+    .card { background:#fff; padding:20px; border-radius:16px; max-width:560px; margin:auto; box-shadow:0 10px 25px rgba(0,0,0,.1); }
+    h1,h2 { text-align:center; margin: 10px 0 14px; }
+    p { margin: 10px 0; }
+    input { width:100%; padding:10px; margin:6px 0; border-radius:10px; border:1px solid #ccc; }
+    button { width:100%; padding:14px; margin-top:14px; border-radius:12px; border:none; background:#111; color:#fff; font-size:16px; cursor:pointer; }
+    button.secondary { background:#6b7280; }
+    .audio { background:#f9fafb; padding:16px; border-radius:12px; margin-top:14px; font-size:17px; line-height:1.45; }
+    .meta { font-size:12px; opacity:.65; margin-bottom:8px; }
+    .btncol { display:flex; flex-direction:column; gap:10px; margin-top:12px; }
+    .pill { display:inline-block; padding:10px 12px; border-radius:12px; background:#111; color:#fff; font-size:16px; border:none; cursor:pointer; text-align:left; }
+    .feedback-ok { background:#ecfdf5; }
+    .feedback-no { background:#fef2f2; }
   </style>
 </head>
 <body>
 
 <div class="card" id="app">
   <h1>Interactieve Audiogids</h1>
-  <p>Vul de namen in van de deelnemers:</p>
+  <p>Vul de namen in van de 8 deelnemers:</p>
   <div id="inputs"></div>
   <button onclick="startTour()">Start audiotour</button>
+  <p style="font-size:12px;opacity:.7;margin-top:10px;">
+    Tip: als je net geüpdatet hebt, open met <code>?v=10</code> om cache te omzeilen.
+  </p>
 </div>
 
 <script>
@@ -62,6 +37,7 @@
   const inputDiv = document.getElementById("inputs");
   const app = document.getElementById("app");
 
+  // Naamvelden
   names.forEach((_, i) => {
     const input = document.createElement("input");
     input.placeholder = `Naam ${i + 1}`;
@@ -69,187 +45,283 @@
     inputDiv.appendChild(input);
   });
 
-  const fragments = [
-    () => `Welkom op de Grote Markt van Antwerpen.
-  Neem even een moment en kijk om je heen.
-  Dit plein is al meer dan achthonderd jaar het hart van de stad.`,
+  // Kies een naam voor quiz (roulerend over ingevulde namen)
+  function quizName(stepIndex) {
+    const filled = names.map(n => (n || "").trim()).filter(n => n.length > 0);
+    if (filled.length === 0) return "Iemand van jullie";
+    return filled[stepIndex % filled.length];
+  }
 
-  () => `Jullie staan hier niet zomaar op een plein.
-  Dit is een plek van handel, macht, ruzie, rijkdom en verhalen.
-  ${names[0] ? names[0] + ", jij staat hier vandaag ook middenin dat verhaal." : ""}`,
+  // Spraak
+  function speak(text) {
+    try {
+      speechSynthesis.cancel();
+      const msg = new SpeechSynthesisUtterance(text);
+      msg.lang = "nl-NL";
+      msg.rate = 1;
+      msg.pitch = 1;
+      msg.onend = () => {};
+      msg.onerror = () => {};
+      speechSynthesis.speak(msg);
+    } catch (e) {
+      // Stil falen: UI blijft werken
+    }
+  }
 
-  () => `Kijk nu naar het stadhuis.
-  Gebouwd in de zestiende eeuw,
-  toen Antwerpen één van de rijkste steden ter wereld was.`,
+  // Steps: tekst + quiz door elkaar
+  const steps = [
 
-  () => `${names[1] ? names[1] + ", stel je eens voor" : "Stel je eens voor"}
-  dat je hier in vijftienhonderdvijfenzestig staat.
-  Wat zou je denken als je dit gebouw ziet?`,
+    /* ========= DEEL A ========= */
+    { type: "text", get: () => `Welkom op de Grote Markt van Antwerpen.
+Neem even een moment en kijk om je heen.
+Dit plein is al meer dan achthonderd jaar het hart van de stad.` },
 
-  () => `Draai nu langzaam mee langs de gildehuizen.
-  Elk huis hoorde bij een beroepsgroep.
-  Hoe hoger en rijker het huis,
-  hoe succesvoller de gilde.`,
+    { type: "text", get: () => `Jullie staan hier niet zomaar op een plein.
+Dit is een plek van handel, macht, ruzie, rijkdom en verhalen.
+${names[0] ? names[0] + ", jij staat hier vandaag ook middenin dat verhaal." : ""}` },
 
-  () => `Kies samen één gevel die jullie het mooist vinden
-  en wijs hem aan.`,
+    {
+      type: "quiz",
+      question: "Waar komt de naam ‘Antwerpen’ volgens de legende vandaan?",
+      options: [
+        "Van een Romeinse havennaam",
+        "Van ‘hand werpen’ (een hand in de Schelde gooien)",
+        "Van een oud woord voor ‘markt’"
+      ],
+      correctIndex: 1,
+      correctFeedback: "Yes. Volgens de legende: ‘hand werpen’. Brabo gooit de hand van Antigoon in de Schelde.",
+      wrongFeedback: "Bijna. Volgens de legende komt het van ‘hand werpen’: Brabo gooit een hand in de Schelde."
+    },
 
-  () => `En dan midden op het plein: Silvius Brabo.
-  Volgens de legende doodde hij de reus Antigoon
-  en gooide diens hand in de Schelde.`,
+    { type: "text", get: () => `Kijk nu naar het stadhuis.
+Gebouwd in de zestiende eeuw,
+toen Antwerpen één van de rijkste steden ter wereld was.` },
 
-  () => `Of het waar is of niet:
-  dit verhaal gaf Antwerpen zijn naam.
-  Hand werpen.
-  Zelfs in de middeleeuwen wist men:
-  een goed verhaal verkoopt.`,
+    { type: "text", get: () => `${names[1] ? names[1] + ", stel je eens voor" : "Stel je eens voor"}
+dat je hier in vijftienhonderdvijfenzestig staat.
+Wat zou je denken als je dit gebouw ziet?` },
 
-  () => `Wat jullie hier zien is geen decor.
-  Het is een toneel dat al eeuwen in gebruik is.
-  Neem straks even een moment om rond te kijken.`,
+    { type: "text", get: () => `Draai nu langzaam mee langs de gildehuizen.
+Elk huis hoorde bij een beroepsgroep.
+Hoe hoger en rijker het huis,
+hoe succesvoller de gilde.` },
 
-  /* ========== OVERGANG NAAR DEEL B ========== */
+    { type: "text", get: () => `Kies samen één gevel die jullie het mooist vinden
+en wijs hem aan.` },
 
-  () => `We gaan nu een laag dieper.
-  Om deze plek echt te begrijpen,
-  moeten we het hebben over macht,
-  geloof, kapitaal en informatie.`,
+    { type: "text", get: () => `En dan midden op het plein: Silvius Brabo.
+Volgens de legende doodde hij de reus Antigoon
+en gooide diens hand in de Schelde.` },
 
-  /* ========== DEEL B ========== */
+    { type: "text", get: () => `Of het waar is of niet:
+dit verhaal gaf Antwerpen zijn naam.
+Hand werpen.
+Zelfs in de middeleeuwen wist men:
+een goed verhaal verkoopt.` },
 
-  () => `Antwerpen in de zestiende eeuw was niet alleen rijk.
-  Het was een experiment.
-  Voor het eerst kwamen hier kapitaal,
-  internationale netwerken,
-  religieuze verschillen
-  en informatie samen.`,
+    {
+      type: "quiz",
+      question: "Wat is volgens jou de beste manier om macht te tonen op zo’n plein?",
+      options: [
+        "Een indrukwekkend stadhuis bouwen",
+        "De markt controleren (handel en regels)",
+        "Verhalen en symbolen verspreiden (zoals Brabo)"
+      ],
+      correctIndex: 2,
+      correctFeedback: "Mooi gekozen. Symbolen en verhalen werken lang door — soms langer dan gebouwen.",
+      wrongFeedback: "Interessant! Er is geen ‘fout’ hier, maar in Antwerpen zie je hoe verhalen en symbolen extreem lang kunnen doorwerken."
+    },
 
-  () => `Handel betekende hier meer dan goederen verplaatsen.
-  Het ging om risico’s,
-  vertrouwen
-  en sneller weten dan anderen.`,
+    { type: "text", get: () => `Wat jullie hier zien is geen decor.
+Het is een toneel dat al eeuwen in gebruik is.
+Neem even een moment om rond te kijken.` },
 
-  () => `${names[2] ? names[2] + ", stel je voor" : "Stel je voor"}
-  dat jij hier koopman was in vijftienhonderdvijftig.
-  Waar zou jij op inzetten:
-  snelheid, relaties of durf?`,
+    /* ========= OVERGANG NAAR DEEL B ========= */
+    { type: "text", get: () => `We gaan nu een laag dieper.
+Om deze plek echt te begrijpen,
+moeten we het hebben over macht,
+geloof, kapitaal en informatie.` },
 
-  () => `Niet toevallig was Antwerpen ook het centrum
-  van de Europese drukkunst.
-  Drukkers als Christoffel Plantijn
-  maakten informatie massaal reproduceerbaar.`,
+    /* ========= DEEL B (verdiept) ========= */
+    { type: "text", get: () => `Antwerpen in de zestiende eeuw was niet alleen rijk.
+Het was een experiment.
+Voor het eerst kwamen hier kapitaal,
+internationale netwerken,
+religieuze verschillen
+en informatie samen.` },
 
-  () => `Wie informatie controleerde,
-  kon markten beïnvloeden
-  en geloofsvragen aanwakkeren.
-  Informatie werd macht.`,
+    { type: "text", get: () => `Handel betekende hier meer dan goederen verplaatsen.
+Het ging om risico’s,
+vertrouwen organiseren,
+en sneller weten dan anderen.
+De Antwerpse koopman was geen sjouwer.
+Het was een strateeg.` },
 
-  () => `Religie was hier geen privézaak.
-  Het ging om loyaliteit,
-  identiteit
-  en politieke controle.`,
+    { type: "text", get: () => `${names[2] ? names[2] + ", stel je voor" : "Stel je voor"}
+dat jij hier koopman was in vijftienhonderdvijftig.
+Waar zou jij op inzetten:
+snelheid, relaties of durf?` },
 
-  () => `De stad probeerde tolerant te zijn
-  zolang dat economisch werkte.
-  Maar zodra geloof een wapen werd,
-  kantelde het evenwicht.`,
+    {
+      type: "quiz",
+      question: "Wat is hier het beste voorbeeld van ‘informatie is macht’?",
+      options: [
+        "Weten wat er in de wereld gebeurt vóór je concurrenten het weten",
+        "De hoogste gevel van de gildehuizen hebben",
+        "De mooiste fontein op het plein plaatsen"
+      ],
+      correctIndex: 0,
+      correctFeedback: "Precies. Wie sneller en betrouwbaarder informatie heeft, beïnvloedt prijzen, risico’s en beslissingen.",
+      wrongFeedback: "Niet helemaal. De kern is: wie sneller en betrouwbaarder informatie heeft, beïnvloedt prijzen, risico’s en beslissingen."
+    },
 
-  () => `De breuk van vijftienhonderdvijfentachtig
-  kwam niet uit het niets.
-  Antwerpen zat klem
-  tussen haar eigen realiteit
-  en de ambities van een wereldrijk.`,
+    { type: "text", get: () => `Niet toevallig was Antwerpen ook een centrum van drukkunst.
+Drukkers als Christoffel Plantijn verspreidden bijbels,
+pamfletten, wetenschap en nieuws.
+Informatie werd massaal reproduceerbaar.` },
 
-  () => `De tegenpartij was koning Filips de Tweede van Spanje.
-  Voor hem was Antwerpen geen stad,
-  maar een sleutel tot macht.`,
+    { type: "text", get: () => `Religie was hier geen privézaak.
+Het ging om loyaliteit, identiteit en controle.
+De stad probeerde tolerant te zijn zolang dat economisch werkte.
+Maar zodra geloof een politiek wapen werd, kantelde het evenwicht.` },
 
-  () => `Aan de andere kant stond een stadsbestuur
-  dat steeds calvinistischer werd
-  en zich verbond met de Opstand tegen Spanje.`,
+    /* ========= 1585 uitgebreid ========= */
+    { type: "text", get: () => `De val van Antwerpen in 1585 kwam niet uit het niets.
+Jarenlang had de stad geprobeerd economisch open te blijven
+en religieus werkbaar.
+Maar Antwerpen zat klem tussen haar eigen realiteit
+en de ambities van een wereldrijk.` },
 
-  () => `In vijftienhonderdvierenachtig
-  verscheen Alexander Farnese
-  voor de poorten van de stad.`,
+    { type: "text", get: () => `De tegenpartij was koning Filips II van Spanje.
+Voor hem was Antwerpen geen stad,
+maar een sleutel tot macht.
+Aan de andere kant stond een stadsbestuur
+dat steeds calvinistischer werd
+en zich verbond met de Opstand tegen Spanje.` },
 
-  () => `Hij koos niet voor een aanval,
-  maar voor uithongering.
-  Door de Schelde af te sluiten
-  verloor Antwerpen voedsel,
-  handel
-  en informatie.`,
+    { type: "text", get: () => `In 1584 verscheen Alexander Farnese,
+hertog van Parma, voor de poorten van de stad.
+Hij koos niet voor een directe aanval,
+maar voor uithongering.
+Door de Schelde als levensader af te snijden,
+verloor Antwerpen voedsel, handel en informatie.` },
 
-  () => `${names[3] ? names[3] + ", stel je eens voor" : "Stel je eens voor"}
-  dat jij hier toen woonde.
-  Zou je blijven,
-  of zou je vertrekken,
-  wetend wat er zou volgen?`,
+    { type: "text", get: () => `${names[3] ? names[3] + ", stel je eens voor" : "Stel je eens voor"}
+dat jij hier toen woonde.
+Zou je zijn gebleven,
+of zou je zijn vertrokken,
+wetend wat er zou volgen?` },
 
-  () => `Na maanden van honger
-  gaf Antwerpen zich in vijftienhonderdvijfentachtig over.`,
+    {
+      type: "quiz",
+      question: "Wat was het meest ingrijpende gevolg van 1585 voor Antwerpen?",
+      options: [
+        "De stad werd direct volledig verwoest",
+        "Een grote leegloop: kooplieden, drukkers en kapitaal vertrokken",
+        "Antwerpen werd meteen de nieuwe hoofdstad van de Republiek"
+      ],
+      correctIndex: 1,
+      correctFeedback: "Ja. Het kantelpunt was de leegloop: mensen, kennis en kapitaal vertrokken en verplaatsten zich naar het noorden.",
+      wrongFeedback: "Bijna. Het kantelpunt was de leegloop: mensen, kennis en kapitaal vertrokken en verplaatsten zich naar het noorden."
+    },
 
-  () => `De afspraken leken mild,
-  maar de gevolgen waren enorm.
-  Kooplieden,
-  drukkers,
-  financiers
-  en kunstenaars vertrokken.`,
+    { type: "text", get: () => `Wat hier verdween, verplaatste zich.
+Zonder de val van Antwerpen geen Amsterdamse Gouden Eeuw.
+De stad verloor geen muren.
+Ze verloor haar mensen.` },
 
-  () => `Wat hier verdween,
-  verplaatste zich.
-  Zonder de val van Antwerpen
-  geen Amsterdamse Gouden Eeuw.`,
-
-  () => `De stad verloor geen muren.
-  Ze verloor haar mensen.`,
-
-  () => `De Grote Markt bleef bestaan.
-  Niet als motor van de wereld,
-  maar als geheugen.`,
-
-  () => `Wat jullie hier zien
-  is geen succesverhaal
-  en geen tragedie.
-  Het is een casus.
-  En precies daarom
-  is deze plek zo interessant.`
+    { type: "text", get: () => `De Grote Markt bleef bestaan.
+Niet als motor van de wereld,
+maar als geheugen.
+Wat jullie hier zien is geen succesverhaal en geen tragedie.
+Het is een casus.
+En precies daarom is deze plek zo interessant.` },
 
   ];
 
   let step = 0;
 
-  function speak(text) {
-    speechSynthesis.cancel();
-    const msg = new SpeechSynthesisUtterance(text);
-    msg.lang = "nl-NL";
-    speechSynthesis.speak(msg);
-  }
-
   function startTour() {
     step = 0;
-    showFragment();
+    showStep();
   }
 
-  function showFragment() {
-    const text = fragments[step]();
+  function showStep() {
+    const s = steps[step];
+
+    if (!s) return;
+
+    if (s.type === "text") {
+      const text = s.get();
+      app.innerHTML = `
+        <h2>Audiogids</h2>
+        <div class="audio">
+          <div class="meta">Stap ${step + 1} / ${steps.length}</div>
+          ${text.replace(/\n/g, "<br>")}
+        </div>
+        <button onclick="nextStep()">Volgende</button>
+      `;
+      speak(text);
+      return;
+    }
+
+    if (s.type === "quiz") {
+      const who = quizName(step);
+      const questionSpoken = `${who}, quizvraag voor jou. ${s.question}`;
+
+      app.innerHTML = `
+        <h2>Quiz</h2>
+        <div class="audio">
+          <div class="meta">Stap ${step + 1} / ${steps.length}</div>
+          <strong>${who}, quizvraag voor jou:</strong><br><br>
+          ${s.question}
+          <div class="btncol">
+            ${s.options.map((opt, i) => `
+              <button class="pill" onclick="answerQuiz(${i})">${opt}</button>
+            `).join("")}
+          </div>
+        </div>
+        <button class="secondary" onclick="nextStep()">Sla quiz over</button>
+      `;
+
+      speak(questionSpoken);
+      return;
+    }
+  }
+
+  function answerQuiz(chosenIndex) {
+    const s = steps[step];
+    const who = quizName(step);
+    const correct = chosenIndex === s.correctIndex;
+    const feedback = correct ? s.correctFeedback : s.wrongFeedback;
+
     app.innerHTML = `
-      <h2>Audiogids</h2>
-      <div class="audio">${text}</div>
-      <button onclick="nextFragment()">Volgende</button>
+      <h2>Quiz</h2>
+      <div class="audio">
+        <div class="meta">Stap ${step + 1} / ${steps.length}</div>
+        <strong>${who}, quizvraag voor jou:</strong><br><br>
+        ${s.question}
+        <div style="margin-top:12px;">
+          <div style="padding:12px;border-radius:12px;" class="${correct ? "feedback-ok" : "feedback-no"}">
+            ${feedback}
+          </div>
+        </div>
+      </div>
+      <button onclick="nextStep()">Verder</button>
     `;
-    speak(text);
+
+    speak(`${who}. ${feedback}`);
   }
 
-  function nextFragment() {
+  function nextStep() {
     step++;
-    if (step < fragments.length) {
-      showFragment();
+    if (step < steps.length) {
+      showStep();
     } else {
       app.innerHTML = `
-        <h2>Einde – eerste deel</h2>
+        <h2>Einde</h2>
         <div class="audio">
-          Dit was het eerste deel van de audiogids.
-          Neem gerust even de tijd om rond te kijken.
+          Dit was de audiogids. Neem gerust nog even de tijd om rond te kijken.
         </div>
       `;
     }
