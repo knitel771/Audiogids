@@ -24,7 +24,7 @@
 
 <div class="card" id="app">
   <h1>Interactieve Audiogids</h1>
-  <p>Vul de namen in van de 8 deelnemers:</p>
+  <p>Vul de namen in van de 6 deelnemers:</p>
   <div id="inputs"></div>
   <button onclick="startTour()">Start audiotour</button>
   <p style="font-size:12px;opacity:.7;margin-top:10px;">
@@ -33,7 +33,7 @@
 </div>
 
 <script>
-  const names = new Array(8).fill("");
+  const names = new Array(6).fill("");
   const inputDiv = document.getElementById("inputs");
   const app = document.getElementById("app");
 
@@ -101,7 +101,7 @@ ${names[0] ? names[0] + ", jij staat hier vandaag ook middenin dat verhaal." : "
 
     {
       type: "quiz",
-      question: "Waar komt de naam ‘Antwerpen’ volgens de legende vandaan?",
+      question: "Waar komt de naam ‘Antwerpen’ volgens de legende vandaan? Lees de opties maar zelf voor en maak een keuze",
       options: [
         "Van een Romeinse havennaam",
         "Van ‘hand werpen’ (een hand in de Schelde gooien)",
